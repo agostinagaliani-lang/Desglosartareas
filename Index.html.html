@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Desglosar Tareas</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Work+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--lav:#F2C9B8;--lav-light:#FDF0EA;--lav-dark:#C4704A;--lav-mid:#E8A882;--cream:#FDF8F5;--cream-dark:#F5E8DF;--moss:#6B7C5C;--moss-light:#D6E0C8;--moss-dark:#4A5840;--text:#2C2C2A;--text-muted:#6B6860;--border:#EDD5C4;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Work Sans',sans-serif;background:var(--cream);min-height:100vh;-webkit-text-size-adjust:100%;color:var(--text);}
+.wrap{max-width:480px;margin:0 auto;padding-bottom:5rem;}
+.header{background:var(--lav-dark);padding:1.4rem 1.25rem 1.2rem;text-align:center;}
+.header-title{font-family:'Poppins',sans-serif;font-size:19px;font-weight:700;color:#fff;}
+.header-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:3px;letter-spacing:.5px;text-transform:uppercase;}
+.prog-bar{display:flex;gap:5px;padding:12px 1rem 0;}
+.prog-dot{height:4px;flex:1;border-radius:2px;background:var(--cream-dark);transition:background .3s;}
+.prog-dot.active{background:var(--lav-dark);}
+.sec{padding:1.5rem 1rem 2rem;border-bottom:2px dashed var(--cream-dark);}
+.sec:last-child{border-bottom:none;}
+.sec.locked{opacity:.4;pointer-events:none;user-select:none;}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--lav-light);border:1px solid var(--border);border-radius:20px;padding:4px 12px;margin-bottom:.75rem;}
+.pill-num{font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;color:white;background:var(--lav-dark);width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.pill-lbl{font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;color:var(--lav-dark);}
+.schead{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.scdesc{font-size:13px;color:var(--text-muted);margin-bottom:1rem;line-height:1.5;}
+textarea{width:100%;border:1.5px solid var(--border);border-radius:10px;background:white;font-family:'Work Sans',sans-serif;font-size:14px;color:var(--text);padding:10px 12px;outline:none;resize:none;transition:border-color .2s;-webkit-appearance:none;min-height:56px;}
+textarea:focus{border-color:var(--lav-mid);}
+.cont-btn{width:100%;background:var(--lav-dark);color:white;border:none;border-radius:10px;padding:13px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:1rem;display:block;text-align:center;}
+.add-btn{display:flex;align-items:center;gap:6px;background:none;border:1.5px dashed var(--lav-mid);border-radius:10px;padding:9px 14px;font-family:'Work Sans',sans-serif;font-size:13px;color:var(--lav-dark);cursor:pointer;width:100%;margin-top:6px;}
+.q-box{background:var(--lav-light);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:.75rem;}
+.q-label{font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:var(--lav-dark);margin-bottom:6px;}
+/* Paso 1: lista de tareas */
+.tarea-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;background:white;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;}
+.tarea-inp{flex:1;border:none;background:transparent;font-family:'Work Sans',sans-serif;font-size:14px;color:var(--text);outline:none;min-width:0;}
+.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:0 2px;flex-shrink:0;}
+/* Paso 2: elegir tarea */
+.tarea-sel-btn{width:100%;background:white;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;font-family:'Work Sans',sans-serif;font-size:14px;color:var(--text);cursor:pointer;text-align:left;transition:all .15s;}
+.tarea-sel-btn.selected{background:var(--lav-light);border-color:var(--lav-dark);color:var(--lav-dark);font-weight:600;}
+/* Tarea activa badge */
+.tarea-badge{background:var(--lav-dark);color:white;border-radius:8px;padding:8px 12px;margin-bottom:1rem;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;}
+/* Prioridad */
+.section-label{font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:var(--lav-dark);margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px;}
+.prio-row{display:flex;gap:8px;}
+.prio-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid var(--border);background:white;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;}
+.prio-btn.sel-alta{background:#FAD6D6;border-color:#E24B4A;color:#8B2020;}
+.prio-btn.sel-media{background:#FBE6C2;border-color:#E8A020;color:#7A4800;}
+.prio-btn.sel-baja{background:var(--moss-light);border-color:var(--moss);color:var(--moss-dark);}
+.chk-list{display:flex;flex-direction:column;gap:4px;margin-bottom:4px;}
+.chk-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;padding:4px 0;}
+.chk-item input[type=checkbox]{width:18px;height:18px;flex-shrink:0;accent-color:var(--lav-dark);cursor:pointer;}
+.chk-item:has(input:checked){color:var(--text-muted);text-decoration:line-through;}
+.add-chk-row{display:flex;gap:6px;margin-top:4px;margin-bottom:2px;}
+.add-chk-row input[type=text]{flex:1;border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;font-family:'Work Sans',sans-serif;background:white;color:var(--text);outline:none;}
+.add-chk-row button{background:var(--lav-dark);color:white;border:none;border-radius:6px;width:28px;font-size:16px;font-weight:700;cursor:pointer;flex-shrink:0;}
+.deadline-wrap input[type=date]{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'Work Sans',sans-serif;background:white;color:var(--text);outline:none;-webkit-appearance:none;}
+/* Pasos */
+.paso-card{background:white;border:1.5px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;}
+.paso-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.paso-num{background:var(--lav-dark);color:white;font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.paso-inp{flex:1;border:none;background:transparent;font-family:'Work Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text);outline:none;min-width:0;}
+.paso-meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;}
+.meta-block{display:flex;flex-direction:column;gap:3px;}
+.meta-label{font-size:10px;color:var(--text-muted);font-family:'Poppins',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.meta-sel{width:100%;border:1px solid var(--cream-dark);border-radius:6px;background:var(--cream);font-size:11px;padding:3px 5px;color:var(--text);outline:none;}
+.time-row{display:flex;align-items:center;gap:3px;}
+.t-btn{background:var(--lav-mid);border:none;border-radius:4px;width:18px;height:18px;cursor:pointer;font-size:11px;color:white;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.t-val{font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:var(--lav-dark);min-width:22px;text-align:center;}
+.t-unit{font-size:10px;color:var(--text-muted);}
+.fecha-row{display:flex;align-items:center;gap:8px;}
+.fecha-row input[type=date]{flex:1;border:1px solid var(--cream-dark);border-radius:6px;padding:3px 6px;font-size:11px;font-family:'Work Sans',sans-serif;background:var(--cream);color:var(--text);outline:none;}
+.total-box{display:inline-flex;align-items:center;gap:6px;background:var(--cream-dark);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--moss-dark);font-weight:500;margin-top:8px;}
+.add-paso-btn{display:flex;align-items:center;gap:5px;background:none;border:1.5px dashed var(--lav-mid);border-radius:8px;padding:7px 12px;font-family:'Work Sans',sans-serif;font-size:12px;color:var(--lav-dark);cursor:pointer;width:100%;margin-top:4px;}
+/* Resumen */
+.summary-out{background:white;border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem;font-size:13px;line-height:1.8;white-space:pre-wrap;font-family:'Work Sans',sans-serif;min-height:100px;}
+.copy-btn{width:100%;background:var(--lav-dark);color:white;border:none;border-radius:10px;padding:13px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;display:block;text-align:center;}
+.copy-btn.ok{background:var(--moss);}
+.otra-btn{width:100%;background:var(--moss);color:white;border:none;border-radius:10px;padding:13px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;display:block;text-align:center;}
+.reset-btn{width:100%;background:none;border:1.5px solid var(--border);color:var(--text-muted);border-radius:10px;padding:12px;font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:block;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div class="header-title">DESGLOSAR TAREAS</div>
+  <div class="header-sub">Agostina Galiani</div>
+</div>
+<div class="prog-bar">
+  <div class="prog-dot active" id="pd0"></div>
+  <div class="prog-dot" id="pd1"></div>
+  <div class="prog-dot" id="pd2"></div>
+  <div class="prog-dot" id="pd3"></div>
+  <div class="prog-dot" id="pd4"></div>
+  <div class="prog-dot" id="pd5"></div>
+</div>
+
+<!-- PASO 1: TAREAS -->
+<div class="sec" id="sec0">
+  <div class="pill"><div class="pill-num">1</div><div class="pill-lbl">Tus tareas</div></div>
+  <div class="schead">&#191;Qu&#233; tareas ten&#233;s pendientes?</div>
+  <div class="scdesc">Agreg&#225; todas las que quer&#233;s trabajar. Despu&#233;s elegís cu&#225;l desglosar primero.</div>
+  <div id="tareasListEl"></div>
+  <button class="add-btn" id="btnAddTarea">+ Agregar tarea</button>
+  <button class="cont-btn" id="btnCont0">Continuar &#8594;</button>
+</div>
+
+<!-- PASO 2: ELEGIR TAREA -->
+<div class="sec locked" id="sec1">
+  <div class="pill"><div class="pill-num">2</div><div class="pill-lbl">Elegir tarea</div></div>
+  <div class="schead">&#191;Cu&#225;l quer&#233;s desglosar ahora?</div>
+  <div class="scdesc">Toc&#225; la tarea con la que vas a trabajar.</div>
+  <div id="tareasSelectorEl"></div>
+  <button class="cont-btn" id="btnCont1">Continuar &#8594;</button>
+</div>
+
+<!-- PASO 3: REFLEXION -->
+<div class="sec locked" id="sec2">
+  <div class="pill"><div class="pill-num">3</div><div class="pill-lbl">Reflexi&#243;n</div></div>
+  <div class="schead">Antes de desglosar</div>
+  <div class="tarea-badge" id="badgeRef2">&#128204;</div>
+  <div class="q-box">
+    <div class="q-label">&#191;Qu&#233; resultado final necesit&#225;s obtener?</div>
+    <textarea id="q2" placeholder=""></textarea>
+  </div>
+  <div class="q-box">
+    <div class="q-label">&#191;Qu&#233; parte de esto te resulta m&#225;s dif&#237;cil?</div>
+    <textarea id="q3" placeholder=""></textarea>
+  </div>
+  <div class="q-box">
+    <div class="q-label">&#191;Hay algo de la tarea que no te agrade y tiendas a evitarlo?</div>
+    <textarea id="q4" placeholder=""></textarea>
+  </div>
+  <button class="cont-btn" id="btnCont2">Continuar &#8594;</button>
+</div>
+
+<!-- PASO 4: CONTEXTO -->
+<div class="sec locked" id="sec3">
+  <div class="pill"><div class="pill-num">4</div><div class="pill-lbl">Contexto</div></div>
+  <div class="schead">&#191;Qu&#233; necesit&#225;s para arrancar?</div>
+  <div class="tarea-badge" id="badgeRef3">&#128204;</div>
+
+  <div class="q-box" style="margin-bottom:.75rem;">
+    <div class="q-label" style="margin-bottom:10px;">Cheque&#225; lo que ten&#233;s antes de empezar</div>
+
+    <div class="section-label" style="color:var(--lav-dark);margin-bottom:6px;">&#128187; Tecnolog&#237;a</div>
+    <div class="chk-list" id="chkTecno">
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> PC / dispositivo con bater&#237;a</label>
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Auriculares cargados</label>
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Conexi&#243;n a internet (si la necesit&#225;s)</label>
+    </div>
+    <div id="custom_tecno"></div>
+    <div class="add-chk-row"><input type="text" id="inp_tecno" placeholder="Agregar..."><button onclick="addCustomItem('tecno')">+</button></div>
+
+    <div class="section-label" style="color:var(--lav-dark);margin-top:10px;margin-bottom:6px;">&#127968; Entorno f&#237;sico</div>
+    <div class="chk-list">
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Espacio ordenado o despejado</label>
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Iluminaci&#243;n c&#243;moda</label>
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Ropa c&#243;moda</label>
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Algo a mano para anotar</label>
+    </div>
+    <div id="custom_entorno"></div>
+    <div class="add-chk-row"><input type="text" id="inp_entorno" placeholder="Agregar..."><button onclick="addCustomItem('entorno')">+</button></div>
+
+    <div class="section-label" style="color:var(--lav-dark);margin-top:10px;margin-bottom:6px;">&#127774; Regulaci&#243;n</div>
+    <div class="chk-list">
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Fidgets o regulador sensorial</label>
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Agua / bebida</label>
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Snack / comida</label>
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Tiempo de calma previo</label>
+    </div>
+    <div id="custom_regulacion"></div>
+    <div class="add-chk-row"><input type="text" id="inp_regulacion" placeholder="Agregar..."><button onclick="addCustomItem('regulacion')">+</button></div>
+
+    <div class="section-label" style="color:var(--lav-dark);margin-top:10px;margin-bottom:6px;">&#129504; Cognitivo</div>
+    <div class="chk-list">
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Temporizador o timer visible</label>
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Notificaciones silenciadas</label>
+      <label class="chk-item"><input type="checkbox" class="prep-chk"> Material necesario a mano</label>
+    </div>
+    <div id="custom_cognitivo"></div>
+    <div class="add-chk-row"><input type="text" id="inp_cognitivo" placeholder="Agregar..."><button onclick="addCustomItem('cognitivo')">+</button></div>
+  </div>
+
+  <div class="q-box">
+    <div class="q-label">&#191;Hay algo m&#225;s que necesit&#225;s tener antes de arrancar?</div>
+    <textarea id="q5" placeholder=""></textarea>
+  </div>
+  <div class="q-box">
+    <div class="q-label">&#191;Hay algo que dependa de otra persona?</div>
+    <textarea id="q6" placeholder=""></textarea>
+  </div>
+  <div style="margin-top:.75rem;">
+    <div class="section-label">Prioridad de esta tarea</div>
+    <div class="prio-row">
+      <button class="prio-btn" id="prioAlta">&#128308; Alta</button>
+      <button class="prio-btn" id="prioMedia">&#128993; Media</button>
+      <button class="prio-btn" id="prioBaja">&#128994; Baja</button>
+    </div>
+  </div>
+  <div style="margin-top:.75rem;" class="deadline-wrap">
+    <div class="section-label">&#191;Cu&#225;ndo ten&#233;s que terminarla?</div>
+    <input type="date" id="deadline">
+  </div>
+  <button class="cont-btn" id="btnCont3">Continuar &#8594;</button>
+</div>
+
+<!-- PASO 5: DESGLOSE -->
+<div class="sec locked" id="sec4">
+  <div class="pill"><div class="pill-num">5</div><div class="pill-lbl">Desglose</div></div>
+  <div class="schead">Desglosalas en subtareas</div>
+  <div class="scdesc">Para cada subtarea: energ&#237;a, prioridad, tiempo y fecha.</div>
+  <div class="tarea-badge" id="badgeRef4">&#128204;</div>
+  <div id="pasosListEl"></div>
+  <button class="add-paso-btn" id="btnAddPaso">+ Agregar subtarea</button>
+  <div class="total-box">&#9200; Total: <strong id="totalMin">0 min</strong></div>
+  <button class="cont-btn" id="btnCont4">Ver resumen &#8594;</button>
+</div>
+
+<!-- PASO 6: RESUMEN -->
+<div class="sec locked" id="sec5">
+  <div class="pill"><div class="pill-num">6</div><div class="pill-lbl">Resumen</div></div>
+  <div class="schead">Tu plan de acci&#243;n</div>
+  <div class="scdesc">Copi&#225; esto para tenerlo a mano.</div>
+  <div class="summary-out" id="summaryOut"></div>
+  <button class="copy-btn" id="copyBtn">Copiar</button>
+  <button class="otra-btn" id="otraBtn">Trabajar otra tarea &#8594;</button>
+  <button class="reset-btn" id="resetBtn">Empezar de cero</button>
+</div>
+
+</div>
+<script>
+var tareas = [];
+var tareaIdx = -1;
+var prioSelected = '';
+var pasos = [];
+var _st;
+
+function pad2(n){return n<10?'0'+n:String(n);}
+function fmtT(m){if(!m)return'-';if(m<60)return m+'min';var h=Math.floor(m/60),r=m%60;return h+'h'+(r?' '+r+'min':'');}
+function fmtFecha(iso){
+  if(!iso)return'';
+  var p=iso.split('-');
+  var days=['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
+  var months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var d=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+  return days[d.getDay()]+' '+parseInt(p[2])+'/'+months[d.getMonth()];
+}
+function smoothTo(el){if(!el)return;var y=el.getBoundingClientRect().top+window.pageYOffset-10;window.scrollTo({top:y,behavior:'smooth'});}
+function mkPaso(){return{texto:'',energia:'media',prio:'media',mins:30,fecha:''};}
+
+function saveTareas(){try{localStorage.setItem('desglose_tareas',JSON.stringify(tareas));}catch(e){}}
+function loadTareas(){
+  try{var s=localStorage.getItem('desglose_tareas');if(s)tareas=JSON.parse(s);}catch(e){tareas=[];}
+  if(!tareas.length)tareas=[{texto:'',pasos:[mkPaso(),mkPaso(),mkPaso()],q2:'',q3:'',q4:'',q5:'',q6:'',prio:'',deadline:''}];
+}
+function autoSave(){clearTimeout(_st);_st=setTimeout(saveTareas,600);}
+
+function setPrio(p){
+  prioSelected=p;
+  if(tareaIdx>=0)tareas[tareaIdx].prio=p;
+  document.getElementById('prioAlta').className='prio-btn'+(p==='alta'?' sel-alta':'');
+  document.getElementById('prioMedia').className='prio-btn'+(p==='media'?' sel-media':'');
+  document.getElementById('prioBaja').className='prio-btn'+(p==='baja'?' sel-baja':'');
+  autoSave();
+}
+
+// ── PASO 1: LISTA ─────────────────────────────────────
+function renderTareas(){
+  var el=document.getElementById('tareasListEl');if(!el)return;
+  el.innerHTML='';
+  tareas.forEach(function(t,i){
+    var row=document.createElement('div');row.className='tarea-row';
+    var inp=document.createElement('input');inp.type='text';inp.className='tarea-inp';
+    inp.placeholder='Tarea '+(i+1)+'...';inp.value=t.texto;
+    (function(idx){inp.addEventListener('input',function(){tareas[idx].texto=this.value;autoSave();});})(i);
+    var del=document.createElement('button');del.className='del-btn';del.textContent='✕';
+    (function(idx){del.addEventListener('click',function(){
+      if(tareas.length>1)tareas.splice(idx,1);
+      else tareas[0]={texto:'',pasos:[mkPaso(),mkPaso(),mkPaso()],q2:'',q3:'',q4:'',q5:'',q6:'',prio:'',deadline:''};
+      saveTareas();renderTareas();
+    });})(i);
+    row.appendChild(inp);row.appendChild(del);el.appendChild(row);
+  });
+}
+
+// ── PASO 2: SELECTOR ──────────────────────────────────
+function renderSelector(){
+  var el=document.getElementById('tareasSelectorEl');if(!el)return;
+  el.innerHTML='';
+  tareas.forEach(function(t,i){
+    if(!t.texto.trim())return;
+    var btn=document.createElement('button');
+    btn.className='tarea-sel-btn'+(tareaIdx===i?' selected':'');
+    btn.textContent=(i+1)+'. '+t.texto;
+    (function(idx){btn.addEventListener('click',function(){
+      tareaIdx=idx;
+      document.querySelectorAll('.tarea-sel-btn').forEach(function(b){b.classList.remove('selected');});
+      this.classList.add('selected');
+    });})(i);
+    el.appendChild(btn);
+  });
+}
+
+// ── BADGES ────────────────────────────────────────────
+function updateBadges(){
+  var txt=tareaIdx>=0&&tareas[tareaIdx]?tareas[tareaIdx].texto:'';
+  ['badgeRef2','badgeRef3','badgeRef4'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.textContent='📌 '+txt;
+  });
+}
+
+// ── PASO 5: PASOS ─────────────────────────────────────
+function renderPasos(){
+  var el=document.getElementById('pasosListEl');if(!el)return;
+  el.innerHTML='';
+  if(tareaIdx<0)return;
+  var obj=tareas[tareaIdx];
+  (obj.pasos||[]).forEach(function(p,pi){
+    var card=document.createElement('div');card.className='paso-card';
+    var hdr=document.createElement('div');hdr.className='paso-header';
+    var num=document.createElement('div');num.className='paso-num';num.textContent=pi+1;
+    var inp=document.createElement('input');inp.type='text';inp.className='paso-inp';
+    inp.placeholder='Describí esta subtarea...';inp.value=p.texto;
+    (function(pidx){inp.addEventListener('input',function(){tareas[tareaIdx].pasos[pidx].texto=this.value;autoSave();});})(pi);
+    var del=document.createElement('button');del.className='del-btn';del.textContent='✕';
+    (function(pidx){del.addEventListener('click',function(){
+      if(tareas[tareaIdx].pasos.length>1)tareas[tareaIdx].pasos.splice(pidx,1);
+      saveTareas();renderPasos();
+    });})(pi);
+    hdr.appendChild(num);hdr.appendChild(inp);hdr.appendChild(del);
+
+    var grid=document.createElement('div');grid.className='paso-meta-grid';
+
+    // Energia
+    var bkE=document.createElement('div');bkE.className='meta-block';
+    var lblE=document.createElement('div');lblE.className='meta-label';lblE.textContent='Energía';
+    var selE=document.createElement('select');selE.className='meta-sel';
+    [['baja','⚡ Baja'],['media','⚡⚡ Media'],['alta','⚡⚡⚡ Alta']].forEach(function(op){
+      var o=document.createElement('option');o.value=op[0];o.textContent=op[1];
+      if(p.energia===op[0])o.selected=true;selE.appendChild(o);
+    });
+    (function(pidx){selE.addEventListener('change',function(){tareas[tareaIdx].pasos[pidx].energia=this.value;autoSave();});})(pi);
+    bkE.appendChild(lblE);bkE.appendChild(selE);
+
+    // Prioridad
+    var bkP=document.createElement('div');bkP.className='meta-block';
+    var lblP=document.createElement('div');lblP.className='meta-label';lblP.textContent='Prioridad';
+    var selP=document.createElement('select');selP.className='meta-sel';
+    [['alta','🔴 Alta'],['media','🟡 Media'],['baja','🟢 Baja']].forEach(function(op){
+      var o=document.createElement('option');o.value=op[0];o.textContent=op[1];
+      if(p.prio===op[0])o.selected=true;selP.appendChild(o);
+    });
+    (function(pidx){selP.addEventListener('change',function(){tareas[tareaIdx].pasos[pidx].prio=this.value;autoSave();});})(pi);
+    bkP.appendChild(lblP);bkP.appendChild(selP);
+
+    // Tiempo
+    var bkT=document.createElement('div');bkT.className='meta-block';
+    var lblT=document.createElement('div');lblT.className='meta-label';lblT.textContent='Tiempo';
+    var trow=document.createElement('div');trow.className='time-row';
+    var bM=document.createElement('button');bM.className='t-btn';bM.textContent='-';
+    var vEl=document.createElement('span');vEl.className='t-val';vEl.textContent=p.mins;
+    var bP=document.createElement('button');bP.className='t-btn';bP.textContent='+';
+    var uEl=document.createElement('span');uEl.className='t-unit';uEl.textContent='min';
+    (function(pidx,ve){
+      bM.addEventListener('click',function(){tareas[tareaIdx].pasos[pidx].mins=Math.max(5,tareas[tareaIdx].pasos[pidx].mins-5);ve.textContent=tareas[tareaIdx].pasos[pidx].mins;autoSave();updateTotal();});
+      bP.addEventListener('click',function(){tareas[tareaIdx].pasos[pidx].mins=Math.min(480,tareas[tareaIdx].pasos[pidx].mins+5);ve.textContent=tareas[tareaIdx].pasos[pidx].mins;autoSave();updateTotal();});
+    })(pi,vEl);
+    trow.appendChild(bM);trow.appendChild(vEl);trow.appendChild(bP);trow.appendChild(uEl);
+    bkT.appendChild(lblT);bkT.appendChild(trow);
+
+    grid.appendChild(bkE);grid.appendChild(bkP);grid.appendChild(bkT);
+
+    // Fecha
+    var frow=document.createElement('div');frow.className='fecha-row';
+    var flbl=document.createElement('div');flbl.className='meta-label';flbl.style.flexShrink='0';flbl.textContent='📅 Para cuándo:';
+    var finp=document.createElement('input');finp.type='date';finp.value=p.fecha||'';
+    (function(pidx){finp.addEventListener('change',function(){tareas[tareaIdx].pasos[pidx].fecha=this.value;autoSave();});})(pi);
+    frow.appendChild(flbl);frow.appendChild(finp);
+
+    card.appendChild(hdr);card.appendChild(grid);card.appendChild(frow);
+    el.appendChild(card);
+  });
+  updateTotal();
+}
+
+function updateTotal(){
+  if(tareaIdx<0)return;
+  var tot=(tareas[tareaIdx].pasos||[]).reduce(function(acc,p){return acc+p.mins;},0);
+  var el=document.getElementById('totalMin');if(el)el.textContent=fmtT(tot)||'0 min';
+}
+
+// ── CHECKLIST PERSONALIZADA ───────────────────────────
+var CATS_CHK = ['tecno','entorno','regulacion','cognitivo'];
+var customItems = {};
+
+function loadCustomItems(){
+  try{ var s=localStorage.getItem('descomp_custom_chk'); if(s) customItems=JSON.parse(s); }catch(e){ customItems={}; }
+  CATS_CHK.forEach(function(c){ if(!customItems[c]) customItems[c]=[]; });
+}
+function saveCustomItems(){ try{ localStorage.setItem('descomp_custom_chk', JSON.stringify(customItems)); }catch(e){} }
+
+function renderCustomItems(catKey){
+  var el=document.getElementById('custom_'+catKey); if(!el) return;
+  el.innerHTML='';
+  (customItems[catKey]||[]).forEach(function(item,i){
+    var row=document.createElement('label'); row.className='chk-item';
+    var chk=document.createElement('input'); chk.type='checkbox'; chk.className='prep-chk';
+    var txt=document.createTextNode(item);
+    var del=document.createElement('button');
+    del.style.cssText='background:none;border:none;cursor:pointer;color:#ccc;font-size:13px;margin-left:auto;padding:0 2px;flex-shrink:0;';
+    del.textContent='✕';
+    (function(idx,ck){ del.addEventListener('click',function(e){
+      e.preventDefault(); customItems[ck].splice(idx,1); saveCustomItems(); renderCustomItems(ck);
+    }); })(i,catKey);
+    row.appendChild(chk); row.appendChild(txt); row.appendChild(del);
+    el.appendChild(row);
+  });
+}
+
+function addCustomItem(catKey){
+  var inp=document.getElementById('inp_'+catKey); if(!inp||!inp.value.trim()) return;
+  customItems[catKey].push(inp.value.trim());
+  inp.value='';
+  saveCustomItems(); renderCustomItems(catKey);
+}
+
+function renderAllCustom(){
+  CATS_CHK.forEach(function(c){ renderCustomItems(c); });
+}
+
+// ── RESUMEN ───────────────────────────────────────────
+function buildResumen(){
+  if(tareaIdx<0)return'';
+  var t=tareas[tareaIdx];
+  var pL={alta:'🔴 Alta',media:'🟡 Media',baja:'🟢 Baja'};
+  var eL={baja:'⚡',media:'⚡⚡',alta:'⚡⚡⚡'};
+  var lines=['🗂 DESGLOSE DE TAREA',''];
+  lines.push('📌 Tarea: '+t.texto);
+  if(t.prio)lines.push(t.prio==='alta'?'🔴 Prioridad: Alta':t.prio==='media'?'🟡 Prioridad: Media':'🟢 Prioridad: Baja');
+  if(t.deadline)lines.push('📅 Deadline: '+fmtFecha(t.deadline));
+  var q2=document.getElementById('q2').value.trim();
+  var q3=document.getElementById('q3').value.trim();
+  var q4=document.getElementById('q4').value.trim();
+  var q5=document.getElementById('q5').value.trim();
+  var q6=document.getElementById('q6').value.trim();
+  if(q2){lines.push('');lines.push('✅ Resultado esperado: '+q2);}
+  if(q5)lines.push('🧰 Necesito antes: '+q5);
+  if(q6)lines.push('🤝 Depende de: '+q6);
+  if(q3)lines.push('😓 Lo más difícil: '+q3);
+  if(q4)lines.push('🙈 Lo que evito: '+q4);
+  if(t.pasos&&t.pasos.length){
+    lines.push('');lines.push('📋 Subtareas:');
+    var tot=0;
+    t.pasos.forEach(function(p,i){
+      if(!p.texto.trim())return;
+      var l='  '+(i+1)+'. '+p.texto+' | '+eL[p.energia]+' | '+pL[p.prio]+' | '+fmtT(p.mins);
+      if(p.fecha)l+=' | 📅 '+fmtFecha(p.fecha);
+      lines.push(l);tot+=p.mins;
+    });
+    if(tot){lines.push('');lines.push('⏱ Total estimado: '+fmtT(tot));}
+  }
+  var otras=tareas.filter(function(tt,i){return i!==tareaIdx&&tt.texto.trim();});
+  if(otras.length){lines.push('');lines.push('📌 Otras tareas pendientes:');otras.forEach(function(tt){lines.push('  · '+tt.texto);});}
+  return lines.join('\n');
+}
+
+// ── UNLOCK ────────────────────────────────────────────
+function unlock(n){
+  var sec=document.getElementById('sec'+n);if(!sec)return;
+  if(n===2||n===3||n===4)updateBadges();
+  if(n===3)renderAllCustom();
+  if(n===4)renderPasos();
+  if(n===5)document.getElementById('summaryOut').textContent=buildResumen();
+  sec.classList.remove('locked');
+  for(var i=0;i<=n;i++){var d=document.getElementById('pd'+i);if(d)d.classList.add('active');}
+  setTimeout(function(){smoothTo(sec);},80);
+}
+
+// ── COPIAR ────────────────────────────────────────────
+function copiar(){
+  var text=buildResumen();var btn=document.getElementById('copyBtn');
+  function ok(){btn.classList.add('ok');btn.textContent='Copiado!';setTimeout(function(){btn.classList.remove('ok');btn.textContent='Copiar';},2500);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(ok).catch(function(){fb(text,ok);});}else{fb(text,ok);}
+}
+function fb(text,cb){var ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;top:0;left:0;opacity:0;';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');cb();}catch(e){}document.body.removeChild(ta);}
+
+// ── INIT ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
+  loadTareas();
+  loadCustomItems();
+  renderTareas();
+
+  // Enter para agregar items custom
+  ['tecno','entorno','regulacion','cognitivo'].forEach(function(cat){
+    var inp=document.getElementById('inp_'+cat);
+    if(inp) inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();addCustomItem(cat);} });
+  });
+
+  document.getElementById('btnAddTarea').addEventListener('click',function(){
+    tareas.push({texto:'',pasos:[mkPaso(),mkPaso(),mkPaso()],q2:'',q3:'',q4:'',q5:'',q6:'',prio:'',deadline:''});
+    saveTareas();renderTareas();
+  });
+
+  document.getElementById('btnCont0').addEventListener('click',function(){
+    var hay=tareas.some(function(t){return t.texto.trim();});
+    if(!hay)return;
+    saveTareas();renderSelector();unlock(1);
+  });
+
+  document.getElementById('btnCont1').addEventListener('click',function(){
+    if(tareaIdx<0)return;
+    // restaurar respuestas guardadas si las hay
+    var t=tareas[tareaIdx];
+    document.getElementById('q2').value=t.q2||'';
+    document.getElementById('q3').value=t.q3||'';
+    document.getElementById('q4').value=t.q4||'';
+    unlock(2);
+  });
+
+  document.getElementById('btnCont2').addEventListener('click',function(){
+    // guardar respuestas en la tarea
+    tareas[tareaIdx].q2=document.getElementById('q2').value;
+    tareas[tareaIdx].q3=document.getElementById('q3').value;
+    tareas[tareaIdx].q4=document.getElementById('q4').value;
+    // restaurar contexto
+    var t=tareas[tareaIdx];
+    document.getElementById('q5').value=t.q5||'';
+    document.getElementById('q6').value=t.q6||'';
+    document.getElementById('deadline').value=t.deadline||'';
+    setPrio(t.prio||'');
+    saveTareas();unlock(3);
+  });
+
+  document.getElementById('btnCont3').addEventListener('click',function(){
+    tareas[tareaIdx].q5=document.getElementById('q5').value;
+    tareas[tareaIdx].q6=document.getElementById('q6').value;
+    tareas[tareaIdx].deadline=document.getElementById('deadline').value;
+    saveTareas();unlock(4);
+  });
+
+  document.getElementById('btnCont4').addEventListener('click',function(){saveTareas();unlock(5);});
+
+  document.getElementById('prioAlta').addEventListener('click',function(){setPrio('alta');});
+  document.getElementById('prioMedia').addEventListener('click',function(){setPrio('media');});
+  document.getElementById('prioBaja').addEventListener('click',function(){setPrio('baja');});
+
+  document.getElementById('btnAddPaso').addEventListener('click',function(){
+    if(tareaIdx<0)return;
+    tareas[tareaIdx].pasos.push(mkPaso());
+    saveTareas();renderPasos();
+  });
+
+  document.getElementById('copyBtn').addEventListener('click',copiar);
+
+  document.getElementById('otraBtn').addEventListener('click',function(){
+    // volver al selector para elegir otra tarea
+    tareaIdx=-1;
+    renderSelector();
+    for(var i=2;i<6;i++){var s=document.getElementById('sec'+i);if(s)s.classList.add('locked');}
+    for(var i=2;i<6;i++){var d=document.getElementById('pd'+i);if(d)d.classList.remove('active');}
+    smoothTo(document.getElementById('sec1'));
+  });
+
+  document.getElementById('resetBtn').addEventListener('click',function(){
+    if(!confirm('&#191;Limpiar todo y empezar de cero?'))return;
+    tareas=[{texto:'',pasos:[mkPaso(),mkPaso(),mkPaso()],q2:'',q3:'',q4:'',q5:'',q6:'',prio:'',deadline:''}];
+    tareaIdx=-1;prioSelected='';
+    try{localStorage.removeItem('desglose_tareas');}catch(e){}
+    renderTareas();
+    for(var i=1;i<6;i++){var s=document.getElementById('sec'+i);if(s)s.classList.add('locked');}
+    for(var i=1;i<6;i++){var d=document.getElementById('pd'+i);if(d)d.classList.remove('active');}
+    smoothTo(document.getElementById('sec0'));
+  });
+});
+</script>
+</body>
+</html>
